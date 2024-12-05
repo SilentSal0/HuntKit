@@ -1,6 +1,8 @@
 ﻿using Telegram.Bot;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
+using Telegram.Bot.Exceptions;
+using HuntKit.Services;
 using HuntKit.Json;
 
 namespace HuntKit
@@ -35,14 +37,22 @@ namespace HuntKit
             await Client.SetMyCommands(commands);
         }
 
-        private static async Task UpdateHandler(ITelegramBotClient client, Update update, CancellationToken token)
+        private static async Task UpdateHandler(ITelegramBotClient client, Update update, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            await Handler.HandleUpdateAsync(client, update, cancellationToken);
         }
 
-        private static async Task ErrorHandlder(ITelegramBotClient client, Exception exception, HandleErrorSource source, CancellationToken token)
+        private static Task ErrorHandlder(ITelegramBotClient client, Exception exception, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var errorMessage = exception switch
+            {
+                ApiRequestException apiRequestException => $"Telegram API Error:" +
+                $"\n{apiRequestException.ErrorCode}\n{apiRequestException.Message}",
+                _ => exception.ToString()
+            };
+
+            Console.WriteLine(errorMessage);
+            return Task.CompletedTask;
         }
 
 
